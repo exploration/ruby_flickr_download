@@ -24,7 +24,7 @@ config_file = "config.yaml"
 errors = []
 
 if File.exists?(config_file)
-	config = YAML::load_file(config_file)
+  config = YAML::load_file(config_file)
   errors.push "No Flickr API key defined" if config['api_key'].nil?
   errors.push "No Flickr shared secret defined" if config['shared_secret'].nil?
 else
@@ -95,61 +95,61 @@ Dir.mkdir(image_folder) unless File.directory?(image_folder)
 # We're iterating through the image cache file to store already-downloaded
 # images. We won't re-download if they've already been downloaded.
 if File.exists?(cache_file)
-	cache_file = File.open(cache_file, "r+")
-	cache_file.each do |line|
-		#the image file is everything before the first tab
-		image_file = /^(.*)\t/.match(line)[1]
-		#the id is everything after the first tab
-		id = /^.*\t(.*)/.match(line)[1]
-		#we'll refer to this later to check whether we should download
-		downloaded_images[id] = image_file
-		#puts "Cache ID: #{id}"
-	end
+  cache_file = File.open(cache_file, "r+")
+  cache_file.each do |line|
+    #the image file is everything before the first tab
+    image_file = /^(.*)\t/.match(line)[1]
+    #the id is everything after the first tab
+    id = /^.*\t(.*)/.match(line)[1]
+    #we'll refer to this later to check whether we should download
+    downloaded_images[id] = image_file
+    #puts "Cache ID: #{id}"
+  end
 else
-	cache_file = File.new(cache_file, "w+")
+  cache_file = File.new(cache_file, "w+")
 end
 
 
 
 # Get the 500 most recent photos (500 is the Flickr API max)
 # (at some point we should make looping through all photos an option)
-list = flickr.people.getPhotos	:user_id => "me",
-																:per_page => 500,
+list = flickr.people.getPhotos  :user_id => "me",
+                                :per_page => 500,
 # You can enter a page if for some reason you want to download the full archive
-																#:page => 3,
-																:min_upload_date => summer_start_date
+                                #:page => 3,
+                                :min_upload_date => summer_start_date
 
 # Now iterate through the list received from Flickr and actually get the photos
 list.each do |item|
-	id = item.id
-	# Check to see if we haven't already downloaded the file	
-	unless downloaded_images.has_key?(id)
-		secret = item.secret
-		title  = item.title
-		info   = flickr.photos.getInfo :photo_id => id, :secret => secret
+  id = item.id
+  # Check to see if we haven't already downloaded the file  
+  unless downloaded_images.has_key?(id)
+    secret = item.secret
+    title  = item.title
+    info   = flickr.photos.getInfo :photo_id => id, :secret => secret
 
-		# Show the contents of the "info" object
-		# Puts info.inspect()
+    # Show the contents of the "info" object
+    # Puts info.inspect()
 
-		# Get the medium-sized image URL for the db
-		image_url = FlickRaw.url_z(info)
-		# Get the image extension
-		image_extension = image_url.sub(/.*\./, ".")
-		# This is the name of the image to be saved
-		save_image = "#{id}__#{title}#{image_extension}".gsub(/'/, " ")
+    # Get the medium-sized image URL for the db
+    image_url = FlickRaw.url_z(info)
+    # Get the image extension
+    image_extension = image_url.sub(/.*\./, ".")
+    # This is the name of the image to be saved
+    save_image = "#{id}__#{title}#{image_extension}".gsub(/'/, " ")
 
-		# Write info to the cache file so we don't re-download
-		cache_file.puts("#{save_image}\t#{id}")
+    # Write info to the cache file so we don't re-download
+    cache_file.puts("#{save_image}\t#{id}")
 
-		# Now actually download the file
+    # Now actually download the file
     fork {
       # -L means "follow redirects"
       # -o means "download to file instead STDOUT"
       exec("curl -L -o '#{image_folder}/#{save_image}' #{image_url}")
     }
 
-		count += 1
-	end
+    count += 1
+  end
 end
 
 # Wait for all mah curls to finish
