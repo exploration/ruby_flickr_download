@@ -142,7 +142,7 @@ list.each do |item|
     fork {
       # -L means "follow redirects"
       # -o means "download to file instead STDOUT"
-      exec("curl -L -o '#{image_folder}/#{save_image}' #{image_url}")
+      exec 'curl', '-L', '-o', "#{image_folder}/#{save_image}", image_url
     }
 
     count += 1
