@@ -103,7 +103,6 @@ if File.exists?(cache_file)
     id = /^.*\t(.*)/.match(line)[1]
     #we'll refer to this later to check whether we should download
     downloaded_images[id] = image_file
-    #puts "Cache ID: #{id}"
   end
 else
   cache_file = File.new(cache_file, "w+")
@@ -117,6 +116,7 @@ list = flickr.people.getPhotos  :user_id => "me",
                                 :per_page => 500,
 # You can enter a page if for some reason you want to download the full archive
                                 #:page => 3,
+# We're downloading only stuff since summer started
                                 :min_upload_date => summer_start_date
 
 # Now iterate through the list received from Flickr and actually get the photos
@@ -127,9 +127,6 @@ list.each do |item|
     secret = item.secret
     title  = item.title
     info   = flickr.photos.getInfo :photo_id => id, :secret => secret
-
-    # Show the contents of the "info" object
-    # Puts info.inspect()
 
     # Get the medium-sized image URL for the db
     image_url = FlickRaw.url_z(info)
